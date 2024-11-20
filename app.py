@@ -9,6 +9,9 @@ import numpy as np
 # from keras.src.saving import load_model
 # from keras.src.utils import img_to_array, load_img
 
+import os
+port = int(os.environ.get("PORT", 5000))  # Default to 5000 if PORT is not set
+
 app = Flask(__name__)
 
 # Load the pre-trained model
