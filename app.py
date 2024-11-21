@@ -1,18 +1,14 @@
 from flask import Flask, request, jsonify
-
-from flask import Flask, request, jsonify
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
+from flask_cors import CORS
 import numpy as np
+import io  # Import the io module
+import os  # For reading environment variables
 
-#
-# from keras.src.saving import load_model
-# from keras.src.utils import img_to_array, load_img
-
-import os
-port = int(os.environ.get("PORT", 5000))  # Default to 5000 if PORT is not set
-
+# Initialize Flask app
 app = Flask(__name__)
+CORS(app)  # Enable Cross-Origin Resource Sharing
 
 # Load the pre-trained model
 MODEL_PATH = "cat_dog_classifier_model.h5"
@@ -21,6 +17,9 @@ model = load_model(MODEL_PATH)
 
 # Function to preprocess the image
 def preprocess_image(image):
+    """
+    Resize and normalize the input image to match the model's requirements.
+    """
     image = image.resize((150, 150))  # Resize to the input size
     img_array = img_to_array(image)  # Convert to array
     img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
@@ -28,10 +27,12 @@ def preprocess_image(image):
     return img_array
 
 
-import io  # Import the io module
-
 @app.route('/predict', methods=['POST'])
 def predict():
+    """
+    Endpoint to handle image prediction requests.
+    Expects a file with the key 'file' in the request.
+    """
     try:
         # Check if an image file is included in the request
         if 'file' not in request.files:
@@ -58,5 +59,15 @@ def predict():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route('/')
+def home():
+    """
+    Root endpoint for health checks.
+    """
+    return "API is running!", 200
+
+
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # Use the PORT environment variable for deployment, default to 5000
+    port = int(os.environ.get("PORT", 5000))
+    app.run(debug=False, host='0.0.0.0', port=port)
